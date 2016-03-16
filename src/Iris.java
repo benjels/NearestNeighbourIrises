@@ -18,18 +18,12 @@
 
 public class Iris {
 
-public final double  sepalLength;
-public final double sepalWidth;
-public final double petalLength;
-public final double petalWidth;
+public final double[] vector;
 public final String className;
 
 
 public Iris(double sepalLength, double sepalWidth, double petalLength, double petalWidth, String className) {
-	this.sepalLength = sepalLength;
-	this.sepalWidth = sepalWidth;
-	this.petalLength = petalLength;
-	this.petalWidth = petalWidth;
+	this.vector = new double[]{sepalLength, sepalWidth, petalLength, petalWidth};
 	this.className = className;
 }
 
