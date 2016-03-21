@@ -30,12 +30,12 @@ public class Main {public Main() {
 //	public static final String PATH_TO_TRAINING = "data/iris-test.txt";		//THIS USES TEST AS TRAINING
 //	public static final String PATH_TO_TEST = "data/iris-training.txt";
 
-	
+
 //TODO: care some divide by zero error when we are finding the closeness measure that can apparently happen
 
 
 
-	public static final int k = 7;//TODO: the code down the bottom that deals with talleys only works with like a talley size of 3. also the logic is all hardcoded to be 3...
+	public static final int k = 3;//TODO: the code down the bottom that deals with talleys only works with like a talley size of 3. also the logic is all hardcoded to be 3...
 
 	public static void main(String[] args) throws IOException{
 		System.out.println("starting...");///THREE EXTRA 0S IN CONSOLE BUFFER
@@ -46,14 +46,49 @@ public class Main {public Main() {
 		//find the ranges of the four measurements
 		//double[] ranges = findRanges(trainingIrises, testIrises);
 		//TODO: maybe this shouldnnt be hardcoded
-		double[] ranges = {3.6, 2.4, 5.9, 2.4};
+		double[] ranges = findRange(trainingIrises);//{3.6, 2.4, 5.9, 2.4};
 		//map the test irises to a class using the training irises
 		HashMap<Iris, String> results = classify(k, ranges,  trainingIrises, testIrises);
 		//print the results to console...
 		printResults(results, testIrises.size());
 	}
 
-	
+	/**
+	 * takes a collection of irises and returns a 4 entried array with all of the measurement ranges
+	 * @param trainingIrises a collection of irises
+	 * @return the range
+	 */
+	private static double[] findRange(ArrayList<Iris> trainingIrises) {
+		double[] max = {Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY};
+		double[] min = {Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY};
+		for(Iris eachIris: trainingIrises){
+			double[] vector = eachIris.vector;
+			for(int i = 0; i < 4; i++){
+				//if we found a measurement that's smaller than one of our mins, replace it
+				if(vector[i] < min[i]){
+					min[i] = vector[i];
+				}
+				//if we found a measurement that's larger than one of our maxs, replace it
+				if(vector[i] > max[i]){
+					max[i] = vector[i];
+				}
+			}
+
+		}
+		//generate the range
+		double[] range = new double[4];
+		for(int i = 0; i < 4; i++){
+			range[i] = max[i] - min[i];
+		}
+
+		System.out.println(range[0]);
+		System.out.println(range[1]);
+		System.out.println(range[2]);
+		System.out.println(range[3]);
+		return range;
+	}
+
+
 	public static void printResults(HashMap<Iris, String> results, int testSetSize){
 		System.out.println("PRINTING RESULTS: \n\n\n");
 		System.out.println("\nMAPPINGS:");
@@ -83,7 +118,7 @@ public class Main {public Main() {
 
 
 		for(Iris eachTestIris: testIrises){
-			System.out.println("about to find the neighbours for some test iris : " + eachTestIris.className);
+			//System.out.println("about to find the neighbours for some test iris : " + eachTestIris.className);
 			Iris[] neighboursIrises = new Iris[k];//neighbours is like a k cardinality map that can tolerate repetitions of keys. key, value, key, value etc.
 			double[] neighboursWeights = new double[k];
 			//populate the closest neighbours with filler values to start out
@@ -114,13 +149,13 @@ public class Main {public Main() {
 					}
 				}
 			}
-			System.out.println(" \n \n \n these are the neighbours for a " + eachTestIris.className + ": ");
-			System.out.println(eachTestIris.vector[0] + " " + eachTestIris.vector[1] + " " + eachTestIris.vector[2] + " " + eachTestIris.vector[3]);
+			//System.out.println(" \n \n \n these are the neighbours for a " + eachTestIris.className + ": ");
+			//System.out.println(eachTestIris.vector[0] + " " + eachTestIris.vector[1] + " " + eachTestIris.vector[2] + " " + eachTestIris.vector[3]);
 			for(int i = 0; i < k; i++){
-				System.out.println(neighboursWeights[i]);
-				System.out.println(neighboursIrises[i].className);
+			//	System.out.println(neighboursWeights[i]);
+			//	System.out.println(neighboursIrises[i].className);
 			}
-			System.out.println("\n \n \n");
+			//System.out.println("\n \n \n");
 			//now we have all of the neighbours of this node, find the majority class
 			//NOTE: there should be enums e.g. 1 -> Iris Setosa etc so that we can just do the tallies and then easily tell which is the majority
 			int[] classTally = new int[3];
@@ -146,7 +181,7 @@ public class Main {public Main() {
 			}else{
 				assert(false): "has to be one of those";
 			}
-			
+
 		}
 		//now each of the test Irises is mapped to the class it seems to belong to
 		return results;
