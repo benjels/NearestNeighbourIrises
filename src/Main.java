@@ -12,6 +12,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.management.RuntimeErrorException;
+
 import com.opencsv.CSVReader;
 
 /**
@@ -25,8 +27,8 @@ public class Main {public Main() {
 	//TODO: we will probably want to track the og 4 values as we go through because just outputting a map that is n->class for the test data is not going to let us see what irises ended up where. maybe n -> irisResult{vector, class}
 
 
-	public static final String PATH_TO_TRAINING = "data/iris-training.txt"; //THIS IS THE STANDARD ORDERING OF TRAIN/TEST
-	public static final String PATH_TO_TEST = "data/iris-test.txt";
+	public static String PATH_TO_TRAINING = "data/iris-training.txt"; //THIS IS THE STANDARD ORDERING OF TRAIN/TEST
+	public static String PATH_TO_TEST = "data/iris-test.txt";
 //	public static final String PATH_TO_TRAINING = "data/iris-test.txt";		//THIS USES TEST AS TRAINING
 //	public static final String PATH_TO_TEST = "data/iris-training.txt";
 
@@ -35,9 +37,18 @@ public class Main {public Main() {
 
 
 
-	public static final int k = 3;//TODO: the code down the bottom that deals with talleys only works with like a talley size of 3. also the logic is all hardcoded to be 3...
+
+	public static int k = 3;//TODO: the code down the bottom that deals with talleys only works with like a talley size of 3. also the logic is all hardcoded to be 3...
+
 
 	public static void main(String[] args) throws IOException{
+		//CHECK WHETHER WE ARE RUNNING THIS FROM THE COMMAND LINE
+		if(args.length == 3){
+			System.out.println("setting data paths from args :)");
+			PATH_TO_TRAINING = args[0];
+			PATH_TO_TEST = args[1];
+			k = Integer.valueOf(args[2]);
+		}
 		System.out.println("starting...");///THREE EXTRA 0S IN CONSOLE BUFFER
 		//load in the training data from the file
 		ArrayList<Iris> trainingIrises = loadIrisDataFromFile(PATH_TO_TRAINING);
@@ -107,7 +118,7 @@ public class Main {public Main() {
 		System.out.println("\nSTATS:");
 		System.out.println("successfully mapped: " + successCount);
 		System.out.println("mistakes: " + mistakesCount);
-		System.out.println("success rate: " + ((double)successCount/testSetSize) + "%");
+		System.out.println("success rate: " + ((double)successCount/testSetSize * (100.0)) + "%");
 	}
 
 //vvv this is the version where I am going to use a three indexed array for all of the neighbours
@@ -172,6 +183,7 @@ public class Main {public Main() {
 			}
 			//so we tallied the neighbours, map this test iris to the class that has the highest tally
 			//NOTE: need to take care of the case at the top where they are all equal, in which case a random class should be chosen or something. Atm setosa gets advantage.
+			assert(classTally[1] == 0 || classTally[1] != classTally[2]): "this data set causes some uneven classification. it's biased towards versicolor";
 			if(classTally[0] >= classTally[1] && classTally[0] >= classTally[2]){
 				results.put(eachTestIris, "Iris-setosa");
 			}else if(classTally[1] >= classTally[0] && classTally[1] >= classTally[2]){
@@ -180,6 +192,7 @@ public class Main {public Main() {
 				results.put(eachTestIris, "Iris-virginica");
 			}else{
 				assert(false): "has to be one of those";
+				throw new RuntimeException("incorrect tally count logic");
 			}
 
 		}
