@@ -1,0 +1,17 @@
+ 
+INSTRUCTIONS:
+
+nearestNeighbourRun.jar is the runnable jar. nearestNeighbourSource.jar has the attached source files.
+
+You can run this program by entering:
+
+java -jar nearestNeighbourRun.jar
+
+Alternatively, you can run it with:
+
+java -jar nearestNeighbourRun.jar data/iris-training.txt data/iris-testing.txt k
+
+(where k is the k value for the algorithm to use. The default is 3. The best value seems to be ~7)
+
+The program prints out the mappings it made for the instances in the test set provided and then 
+a little summary of the results.

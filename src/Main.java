@@ -17,14 +17,13 @@ import javax.management.RuntimeErrorException;
 import com.opencsv.CSVReader;
 
 /**
- * everything in here til structure emerges tbh
+ *
  * @author brownmax1
  *
  */
 public class Main {public Main() {
 	// TODO Auto-generated constructor stub
 }
-	//TODO: we will probably want to track the og 4 values as we go through because just outputting a map that is n->class for the test data is not going to let us see what irises ended up where. maybe n -> irisResult{vector, class}
 
 
 	public static String PATH_TO_TRAINING = "data/iris-training.txt"; //THIS IS THE STANDARD ORDERING OF TRAIN/TEST
@@ -33,23 +32,32 @@ public class Main {public Main() {
 //	public static final String PATH_TO_TEST = "data/iris-training.txt";
 
 
-//TODO: care some divide by zero error when we are finding the closeness measure that can apparently happen
 
-
-
-
-	public static int k = 3;//TODO: the code down the bottom that deals with talleys only works with like a talley size of 3. also the logic is all hardcoded to be 3...
+	public static int k = 3;
 
 
 	public static void main(String[] args) throws IOException{
 		//CHECK WHETHER WE ARE RUNNING THIS FROM THE COMMAND LINE
 		if(args.length == 3){
-			System.out.println("setting data paths from args :)");
 			PATH_TO_TRAINING = args[0];
 			PATH_TO_TEST = args[1];
 			k = Integer.valueOf(args[2]);
+			//load in the training data from the file
+			ArrayList<Iris> trainingIrises = loadIrisDataFromFile(PATH_TO_TRAINING);
+			//load in the test data from the file
+			ArrayList<Iris> testIrises = loadIrisDataFromFile(PATH_TO_TEST);
+			//find the ranges of the four measurements
+			//double[] ranges = findRanges(trainingIrises, testIrises);
+			//TODO: maybe this shouldnnt be hardcoded
+			double[] ranges = findRange(trainingIrises);//{3.6, 2.4, 5.9, 2.4};
+			//map the test irises to a class using the training irises
+			HashMap<Iris, String> results = classify(k, ranges,  trainingIrises, testIrises);
+			//print the results to console...
+			printResults(results, testIrises.size());
+			System.out.println("\n!!! you provided the correct amount of arguments, so program ran with the settings you provided.");
+			return;
 		}
-		System.out.println("starting...");///THREE EXTRA 0S IN CONSOLE BUFFER
+
 		//load in the training data from the file
 		ArrayList<Iris> trainingIrises = loadIrisDataFromFile(PATH_TO_TRAINING);
 		//load in the test data from the file
@@ -62,6 +70,7 @@ public class Main {public Main() {
 		HashMap<Iris, String> results = classify(k, ranges,  trainingIrises, testIrises);
 		//print the results to console...
 		printResults(results, testIrises.size());
+		System.out.println("\n\n\n !!! you did not enter the required three args (pathToTraining, pathToTest, k), so we are running the program on default settings : )");
 	}
 
 	/**
@@ -92,30 +101,28 @@ public class Main {public Main() {
 			range[i] = max[i] - min[i];
 		}
 
-		System.out.println(range[0]);
-		System.out.println(range[1]);
-		System.out.println(range[2]);
-		System.out.println(range[3]);
+
 		return range;
 	}
 
 
 	public static void printResults(HashMap<Iris, String> results, int testSetSize){
-		System.out.println("PRINTING RESULTS: \n\n\n");
+		System.out.println("PRINTING RESULTS: \n");
 		System.out.println("\nMAPPINGS:");
 		for(Iris eachKey: results.keySet()){
-			System.out.println("mapped a " + eachKey.className + " to the class : " + results.get(eachKey));
+			System.out.println("mapped an " + eachKey.className + " to the class : " + results.get(eachKey)+ "      This instance's vector: " + eachKey.vector[0] + ","+ eachKey.vector[1] + ","+ eachKey.vector[2] + ","+ eachKey.vector[3]);
 		}
 		System.out.println("\nMISTAKES:"); //and count up stats as we go
 		int mistakesCount = 0;
 		for(Iris eachKey: results.keySet()){
 			if(!results.get(eachKey).equals(eachKey.className)){
-				System.out.println("mapped a " + eachKey.className + " to the class : " + results.get(eachKey));
+				System.out.println("mapped an " + eachKey.className + " to the class : " + results.get(eachKey) + "      This instance's vector: " + eachKey.vector[0] + ","+ eachKey.vector[1] + ","+ eachKey.vector[2] + ","+ eachKey.vector[3]);
 				mistakesCount++;
 			}
 		}
 		int successCount = testSetSize - mistakesCount;
 		System.out.println("\nSTATS:");
+		System.out.println("k value: " + k);
 		System.out.println("successfully mapped: " + successCount);
 		System.out.println("mistakes: " + mistakesCount);
 		System.out.println("success rate: " + ((double)successCount/testSetSize * (100.0)) + "%");
@@ -137,7 +144,7 @@ public class Main {public Main() {
 			//we do not encounter them when we are traversing all of the training irises later one
 			//(when we do that, we get the problem of generating exactly the same key/distance as we have generated before
 			//which "overwrites an entry in the map. We were still taking one out, but
-			//TODO: could just put three values in with double.maxValue as their weight so that they definitely get replaced <<this might not be a problem when we arent using the map
+
 			for(int i = 0; i < k; i++){
 				neighboursWeights[i] = findDistance(ranges, eachTestIris, trainingIrises.get(i));
 				neighboursIrises[i] = trainingIrises.get(i);
@@ -160,13 +167,8 @@ public class Main {public Main() {
 					}
 				}
 			}
-			//System.out.println(" \n \n \n these are the neighbours for a " + eachTestIris.className + ": ");
-			//System.out.println(eachTestIris.vector[0] + " " + eachTestIris.vector[1] + " " + eachTestIris.vector[2] + " " + eachTestIris.vector[3]);
-			for(int i = 0; i < k; i++){
-			//	System.out.println(neighboursWeights[i]);
-			//	System.out.println(neighboursIrises[i].className);
-			}
-			//System.out.println("\n \n \n");
+
+
 			//now we have all of the neighbours of this node, find the majority class
 			//NOTE: there should be enums e.g. 1 -> Iris Setosa etc so that we can just do the tallies and then easily tell which is the majority
 			int[] classTally = new int[3];
